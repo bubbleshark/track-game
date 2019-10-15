@@ -38,6 +38,7 @@ class Player():
         self.sensor_offset = player_info["sensor_offset"]
         self.sensor_pos = [[] for i in range(0,len(self.sensor_offset))]
         self.sensor_value = [0 for i in range(0,len(self.sensor_offset))]
+        self.sensor_value_prev = [0 for i in range(0,len(self.sensor_offset))]
         self.player_info = player_info
 
     def reset(self):
@@ -165,7 +166,7 @@ class Player():
                     if self.check_collide_map(round(x2),round(y2)):
                         collid_flag = True
                         tp_x, tp_y = x2, y2
-                    
+                self.sensor_value_prev[i] = self.sensor_value[i]
                 if collid_flag is True:
                     self.sensor_value[i] = math.sqrt(pow((tp_x-x1),2)+pow((tp_y-y1),2))
                 else:

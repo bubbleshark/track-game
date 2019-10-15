@@ -1,7 +1,7 @@
 import tensorflow as tf
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-
+'''
 player_info={
     "rotate_step": 3,
     "initial_x": 121,
@@ -12,12 +12,8 @@ player_info={
     "speed_max": 5,
     "sensor_offset": [[10,0,80,0],[12,340,60,45],[12,20,60,315],[9,316,40,90],[9,44,40,270]] # r,degree,r,degree
 }
-train_info={
-    "n_layer_num": 2,
-    "n_hidden":[10,10],
-    "num_input":10,
-    "num_output": 4
-}
+'''
+
 
 class Trainer():
     def __init__(self,player_info,train_info):
@@ -59,7 +55,7 @@ class Trainer():
                 output.append(True)
             else:
                 output.append(False)
-        print(output)
+        return output
 
 def main():
     trainer = Trainer(player_info,train_info)
@@ -71,4 +67,4 @@ def main():
         input[0][i+sensor_num] = input[0][i]/e[2]
     trainer.run(input)
 
-main()
+#main()
