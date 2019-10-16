@@ -23,6 +23,7 @@ class Trainer():
         self.num_input = train_info["num_input"]
         self.num_output = train_info["num_output"]
         self.X = tf.placeholder("float", [None, self.num_input])
+        self.start = True
         self.weights = []
         self.biases = []
         for i in range(0,self.n_layer_num):
@@ -40,7 +41,6 @@ class Trainer():
     def neural_net(self,x):
         layers = []
         for i in range(0,self.n_layer_num+1):
-            print(i)
             if i == 0:
                 layers.append(tf.add(tf.matmul(x, self.weights[i]),self.biases[i]))
             else:

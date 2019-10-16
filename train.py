@@ -40,8 +40,9 @@ def train():
     player_input_list= []
     for i in range(0,player_num):
         player_input_list.append([False,False,False,False])
-    print(player_input_list)
     trainer = [Trainer(player_info,train_info) for i in range(0,player_num)]
+    player_stop = 0
+    player_flag = [False for i in range(0,player_num)]
     while True:
         for e in pygame.event.get():
                 if e.type == pygame.QUIT:
@@ -58,17 +59,32 @@ def train():
                         player.reset()
         game.run_step(player_input_list)
         for i,player in enumerate(game.player):
+            if trainer[i].start == False:
+                continue
+            deg = (-1*(math.atan2(player.speed_y, player.speed_x) * (180 / math.pi)) + 360 ) %360
+            forward = False
+            if abs(player.rotate - deg) < 90:
+                forward = True
+            #print(i,player.speed_x,player.speed_y,player.rotate,deg,abs(player.rotate - deg),forward)
+            if player.collide == True or (forward == False and player_flag[i] == True) or (player.speed_x==0 and player.speed_y==0 and player_flag[i] == True):
+                player.reset()
+                trainer[i].start = False
+                player_input_list[i] = [False,False,False,False]
+                player_stop += 1
+                continue
             input = [player.sensor_value_prev+player.sensor_value]
             sensor_num = len(player_info["sensor_offset"])
+            #print(player.speed_x,player.speed_y)
+            output = trainer[i].run(input)
+            print(output)
+            player_input_list[i]= output
+            player_flag[i] = True
             #for k,e in enumerate(player_info["sensor_offset"]):
             #    input[0][k] = input[0][k]/e[2]
             #    input[0][k+sensor_num] = input[0][k]/e[2]
-            print(trainer,i,input)
-            output = trainer[i].run(input)
-
-            if player.collide == True:
-                player.reset()
-            player_input_list[i]= output
+            #print(trainer,i,input)
+        #if player_stop == player_num:
+        #    break
 
 def main():
     train()
