@@ -1,4 +1,6 @@
 import tensorflow as tf
+from itertools import chain
+import numpy as np
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 '''
@@ -24,6 +26,7 @@ class Trainer():
         self.num_output = train_info["num_output"]
         self.X = tf.placeholder("float", [None, self.num_input])
         self.start = True
+        self.score = 0
         self.weights = []
         self.biases = []
         for i in range(0,self.n_layer_num):
@@ -56,6 +59,22 @@ class Trainer():
             else:
                 output.append(False)
         return output
+        
+    def get_weights(self):
+        l = list(self.sess.run(self.weights))
+        for i in range(0,len(l)):
+            l[i] = list(l[i])
+            for k in range(0,len(l[i])):
+                l[i][k] = list(l[i][k])
+        #l = np.array(l)
+        #l = l.reshape(1)
+        #l = [[[1,2,3],[2,2,3],[3,2,3]],[[1,2,4],[2,2,4],[3,2,4]],[[1,2,5],[2,2,5],[3,2,5]]]
+        #l = list(chain.from_iterable(list(chain.from_iterable(l))))
+        #print(l)
+        return l
+    
+    #def set_weights(self,weights):
+    #   [weights[i:i+n] for i in xrange(0, len(weights), n)]
 
 def main():
     trainer = Trainer(player_info,train_info)
