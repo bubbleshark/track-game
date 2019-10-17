@@ -1,6 +1,8 @@
 import tensorflow as tf
 from itertools import chain
 import numpy as np
+import math
+import random
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 '''
@@ -15,8 +17,63 @@ player_info={
     "sensor_offset": [[10,0,80,0],[12,340,60,45],[12,20,60,315],[9,316,40,90],[9,44,40,270]] # r,degree,r,degree
 }
 '''
+def mate_weights(trainer,sort_list,player_num,select_rate):
+    select_pool = []
+    new_pool = []
+    for i in range(0,math.ceil(player_num*select_rate)):
+        l = trainer[sort_list[i][0]].get_weights()
+        select_pool.append(l)
+    select_num = len(select_pool)
+    
+    node_count = 0
+    for i in range(0,len(select_pool[0])):
+        for i2 in range(0,len(select_pool[0][i])):
+            for i3 in range(0,len(select_pool[0][i][i2])):
+                node_count += 1
+    for i in range(0,player_num):
+        l=[]
+        for i2 in range(0,len(select_pool[0])): # get layers
+            l2 = []
+            for i3 in range(0,len(select_pool[0][i2])):
+                l3 = []
+                for i4 in range(0,len(select_pool[0][i2][i3])):
+                    l3.append(select_pool[math.floor(random.random()*select_num)][i2][i3][i4])
+                l2.append(l3)
+            l.append(l2)
+        for i2 in range(0,math.ceil(node_count*select_rate)):
+            i3 = math.floor(random.random()*len(l)) # select layer
+            i4 = math.floor(random.random()*len(l[i3]))
+            i5 = math.floor(random.random()*len(l[i3][i4]))
+            l[i3][i4][i5] = random.random()*2
+        new_pool.append(l)
+    return new_pool
 
-
+def mate_biases(trainer,sort_list,player_num,select_rate):
+    select_pool = []
+    new_pool = []
+    for i in range(0,math.ceil(player_num*select_rate)):
+        l = trainer[sort_list[i][0]].get_biases()
+        select_pool.append(l)
+    select_num = len(select_pool)
+    
+    node_count = 0
+    for i in range(0,len(select_pool[0])):
+        for i2 in range(0,len(select_pool[0][i])):
+            node_count += 1
+    for i in range(0,player_num):
+        l=[]
+        for i2 in range(0,len(select_pool[0])): # get layers
+            l2 = []
+            for i3 in range(0,len(select_pool[0][i2])):
+                l2.append(select_pool[math.floor(random.random()*select_num)][i2][i3])
+            l.append(l2)
+        for i2 in range(0,math.ceil(node_count*select_rate)):
+            i3 = math.floor(random.random()*len(l)) # select layer
+            i4 = math.floor(random.random()*len(l[i3]))
+            l[i3][i4] = random.random()*2
+        new_pool.append(l)
+    return new_pool
+        
 class Trainer():
     def __init__(self,player_info,train_info):
         self.player_info = player_info
@@ -66,16 +123,28 @@ class Trainer():
             l[i] = list(l[i])
             for k in range(0,len(l[i])):
                 l[i][k] = list(l[i][k])
-        #l = np.array(l)
-        #l = l.reshape(1)
-        #l = [[[1,2,3],[2,2,3],[3,2,3]],[[1,2,4],[2,2,4],[3,2,4]],[[1,2,5],[2,2,5],[3,2,5]]]
-        #l = list(chain.from_iterable(list(chain.from_iterable(l))))
-        #print(l)
         return l
     
-    #def set_weights(self,weights):
-    #   [weights[i:i+n] for i in xrange(0, len(weights), n)]
-
+    def get_biases(self):
+        l = list(self.sess.run(self.biases))
+        for i in range(0,len(l)):
+            l[i] = list(l[i])
+        return l
+    def set_weights(self,weights):
+        for i in range(0,len(weights)):
+            if i == 0:
+                print(self.sess.run(self.weights[i]))
+            self.sess.run(self.weights[i].assign(weights[i]))
+            #print(self.sess.run(self.weights[i]))
+        return
+    def set_biases(self,biases):
+        for i in range(0,len(biases)):
+            if i == 0:
+                print(self.sess.run(self.biases[i]))
+            self.sess.run(self.biases[i].assign(biases[i]))
+            #print(self.sess.run(self.biases[i]))
+        return
+        
 def main():
     trainer = Trainer(player_info,train_info)
     input = [[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0]] # n-1, n

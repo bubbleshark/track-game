@@ -7,7 +7,7 @@ import numpy as np
 import random
 from track_game_helper import TrackGameHelper
 from player import Player
-from gene import Trainer
+from gene import Trainer, mate_weights, mate_biases
 
 map_file = "data/track.png"
 car_file = "data/car_blue.png"
@@ -63,6 +63,7 @@ def train():
         for i,player in enumerate(game.player):
             if trainer[i].start == False:
                 continue
+            print(i)
             deg = (-1*(math.atan2(player.speed_y, player.speed_x) * (180 / math.pi)) + 360 ) %360
             forward = False
             if abs(player.rotate - deg) < 90:
@@ -91,45 +92,15 @@ def train():
             for i in range(0,player_num):
                 sort_list.append([i,trainer[i].score])
             sort_list = sorted(sort_list,key=lambda l:l[1], reverse=True)
-            select_pool = []
-            new_pool = []
-            for i in range(0,math.ceil(player_num*select_rate)):
-                l = trainer[sort_list[i][0]].get_weights()
-                select_pool.append(l)
-            select_num = len(select_pool)
-            
-            node_count = 0
-            for i in range(0,len(select_pool[0])):
-                for i2 in range(0,len(select_pool[0][i])):
-                    for i3 in range(0,len(select_pool[0][i][i2])):
-                        node_count += 1
+            new_weights_pool = mate_weights(trainer,sort_list,player_num,select_rate)
+            new_biases_pool = mate_biases(trainer,sort_list,player_num,select_rate)
             for i in range(0,player_num):
-                l=[]
-                for i2 in range(0,len(select_pool[0])): # get layers
-                    l2 = []
-                    for i3 in range(0,len(select_pool[0][i2])):
-                        l3 = []
-                        for i4 in range(0,len(select_pool[0][i2][i3])):
-                            l3.append(select_pool[math.floor(random.random()*select_num)][i2][i3][i4])
-                        l2.append(l3)
-                    l.append(l2)
-                for i2 in range(0,math.ceil(node_count*select_rate)):
-                    i3 = math.floor(random.random()*len(l)) # select layer
-                    i4 = math.floor(random.random()*len(l[i3]))
-                    i5 = math.floor(random.random()*len(l[i3][i4]))
-                    l[i3][i4][i5] = random.random()*pow(10,36)
-                new_pool.append(l)
-            #for i in range(0,player_num):
-                #trainer
-                #print(a.shape,type(a))
-            #for i in range(0,player_num):
-            #    for k in range(0,4):
-            #        player_input_list[i][k] = False
-            #trainer = [Trainer(player_info,train_info) for i in range(0,player_num)]
-            
+                trainer[i].set_weights(new_weights_pool[i])
+                trainer[i].set_biases(new_biases_pool[i])
+                trainer[i].start = True
+                print("set")
             player_stop = 0
             player_flag = [False for i in range(0,player_num)]
-            break
 
 def main():
     train()
