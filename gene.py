@@ -17,7 +17,7 @@ player_info={
     "sensor_offset": [[10,0,80,0],[12,340,60,45],[12,20,60,315],[9,316,40,90],[9,44,40,270]] # r,degree,r,degree
 }
 '''
-def mate_weights(trainer,sort_list,player_num,select_rate):
+def mate_weights(trainer,sort_list,player_num,select_rate,max_weights):
     select_pool = []
     new_pool = []
     for i in range(0,math.ceil(player_num*select_rate)):
@@ -30,6 +30,7 @@ def mate_weights(trainer,sort_list,player_num,select_rate):
         for i2 in range(0,len(select_pool[0][i])):
             for i3 in range(0,len(select_pool[0][i][i2])):
                 node_count += 1
+    '''
     for i in range(0,player_num):
         l=[]
         for i2 in range(0,len(select_pool[0])): # get layers
@@ -40,15 +41,20 @@ def mate_weights(trainer,sort_list,player_num,select_rate):
                     l3.append(select_pool[math.floor(random.random()*select_num)][i2][i3][i4])
                 l2.append(l3)
             l.append(l2)
-        for i2 in range(0,math.ceil(node_count*select_rate)):
+    '''
+    for i in range(0,player_num):
+        l = max_weights.copy()
+        for i2 in range(0,math.ceil(node_count*0.05)):
             i3 = math.floor(random.random()*len(l)) # select layer
             i4 = math.floor(random.random()*len(l[i3]))
             i5 = math.floor(random.random()*len(l[i3][i4]))
-            l[i3][i4][i5] = random.random()*2
+            l[i3][i4][i5] = random.uniform(-2, 2)
+        #if i == 0:
+        #    print(l[0][0])
         new_pool.append(l)
     return new_pool
 
-def mate_biases(trainer,sort_list,player_num,select_rate):
+def mate_biases(trainer,sort_list,player_num,select_rate,max_biases):
     select_pool = []
     new_pool = []
     for i in range(0,math.ceil(player_num*select_rate)):
@@ -60,17 +66,15 @@ def mate_biases(trainer,sort_list,player_num,select_rate):
     for i in range(0,len(select_pool[0])):
         for i2 in range(0,len(select_pool[0][i])):
             node_count += 1
+    
     for i in range(0,player_num):
-        l=[]
-        for i2 in range(0,len(select_pool[0])): # get layers
-            l2 = []
-            for i3 in range(0,len(select_pool[0][i2])):
-                l2.append(select_pool[math.floor(random.random()*select_num)][i2][i3])
-            l.append(l2)
-        for i2 in range(0,math.ceil(node_count*select_rate)):
+        l= max_biases.copy()
+        for i2 in range(0,math.ceil(node_count*0.05)):
             i3 = math.floor(random.random()*len(l)) # select layer
             i4 = math.floor(random.random()*len(l[i3]))
-            l[i3][i4] = random.random()*2
+            l[i3][i4] = random.uniform(-2, 2)
+        if i == 0:
+            print(l[0])
         new_pool.append(l)
     return new_pool
         
@@ -86,6 +90,8 @@ class Trainer():
         self.score = 0
         self.weights = []
         self.biases = []
+        self.layers = []
+        self.output=[False,False,False,False]
         for i in range(0,self.n_layer_num):
             if i == 0:
                 self.weights.append(tf.Variable(tf.random_normal([self.num_input, self.n_hidden[i]])))
@@ -97,25 +103,23 @@ class Trainer():
         self.biases.append(tf.Variable(tf.random_normal([self.num_output])))
         self.sess = tf.Session()
         self.sess.run(tf.initialize_all_variables())
-
-    def neural_net(self,x):
-        layers = []
         for i in range(0,self.n_layer_num+1):
             if i == 0:
-                layers.append(tf.add(tf.matmul(x, self.weights[i]),self.biases[i]))
+                self.layers.append(tf.add(tf.matmul(self.X, self.weights[i]),self.biases[i]))
             else:
-                layers.append(tf.add(tf.matmul(layers[i-1], self.weights[i]),self.biases[i]))
-        return layers[-1]
+                self.layers.append(tf.add(tf.matmul(self.layers[i-1], self.weights[i]),self.biases[i]))
+
+    def neural_net(self):
+        return self.layers[-1]
         
     def run(self,input):
-        tp_output=list(self.sess.run(self.neural_net(self.X),feed_dict={self.X: input}))[0]        
-        output = []
-        for i in range(0,self.num_output):
+        tp_output=self.sess.run(self.neural_net(),feed_dict={self.X: input})[0]    
+        for i in range(0,4):
             if tp_output[i] >= 0.0:
-                output.append(True)
+                self.output[i] = True
             else:
-                output.append(False)
-        return output
+                self.output[i] = False
+        return
         
     def get_weights(self):
         l = list(self.sess.run(self.weights))
@@ -132,15 +136,15 @@ class Trainer():
         return l
     def set_weights(self,weights):
         for i in range(0,len(weights)):
-            if i == 0:
-                print(self.sess.run(self.weights[i]))
+            #if i == 0:
+            #    print(self.sess.run(self.weights[i]))
             self.sess.run(self.weights[i].assign(weights[i]))
             #print(self.sess.run(self.weights[i]))
         return
     def set_biases(self,biases):
         for i in range(0,len(biases)):
-            if i == 0:
-                print(self.sess.run(self.biases[i]))
+            #if i == 0:
+            #    print(self.sess.run(self.biases[i]))
             self.sess.run(self.biases[i].assign(biases[i]))
             #print(self.sess.run(self.biases[i]))
         return
