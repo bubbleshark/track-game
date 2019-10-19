@@ -4,6 +4,7 @@ import numpy as np
 import math
 import random
 import os
+from mem_top import mem_top
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 '''
 player_info={
@@ -44,10 +45,10 @@ def mate_weights(trainer,sort_list,player_num,select_rate,max_weights):
     '''
     for i in range(0,player_num):
         l = max_weights.copy()
-        for i2 in range(0,math.ceil(node_count*0.05)):
-            i3 = math.floor(random.random()*len(l)) # select layer
-            i4 = math.floor(random.random()*len(l[i3]))
-            i5 = math.floor(random.random()*len(l[i3][i4]))
+        for i2 in range(0,math.ceil(node_count*0.01)):
+            i3 = random.randint(0,len(l)-1) # select layer
+            i4 = random.randint(0,len(l[i3])-1)
+            i5 = random.randint(0,len(l[i3][i4])-1)
             l[i3][i4][i5] = random.uniform(-2, 2)
         #if i == 0:
         #    print(l[0][0])
@@ -69,12 +70,12 @@ def mate_biases(trainer,sort_list,player_num,select_rate,max_biases):
     
     for i in range(0,player_num):
         l= max_biases.copy()
-        for i2 in range(0,math.ceil(node_count*0.05)):
-            i3 = math.floor(random.random()*len(l)) # select layer
-            i4 = math.floor(random.random()*len(l[i3]))
+        for i2 in range(0,math.ceil(node_count*0.01)):
+            i3 = random.randint(0,len(l)-1) # select layer
+            i4 = random.randint(0,len(l[i3])-1)
             l[i3][i4] = random.uniform(-2, 2)
-        if i == 0:
-            print(l[0])
+        #if i == 0:
+        #    print(l[0])
         new_pool.append(l)
     return new_pool
         
@@ -91,6 +92,10 @@ class Trainer():
         self.weights = []
         self.biases = []
         self.layers = []
+        self.update_weights = []
+        self.update_weights_op = []
+        self.update_biases = []
+        self.update_biases_op = []
         self.output=[False,False,False,False]
         for i in range(0,self.n_layer_num):
             if i == 0:
@@ -108,7 +113,13 @@ class Trainer():
                 self.layers.append(tf.add(tf.matmul(self.X, self.weights[i]),self.biases[i]))
             else:
                 self.layers.append(tf.add(tf.matmul(self.layers[i-1], self.weights[i]),self.biases[i]))
-
+        for i in range(0,len(self.weights)):
+            self.update_weights.append(tf.placeholder(dtype=tf.float32, shape=self.weights[i].get_shape()))
+            self.update_weights_op.append(self.weights[i].assign(self.update_weights[i]))
+        for i in range(0,len(self.biases)):
+            self.update_biases.append(tf.placeholder(dtype=tf.float32,shape=self.biases[i].get_shape()))
+            self.update_biases_op.append(self.biases[i].assign(self.update_biases[i]))
+        
     def neural_net(self):
         return self.layers[-1]
         
@@ -136,17 +147,12 @@ class Trainer():
         return l
     def set_weights(self,weights):
         for i in range(0,len(weights)):
-            #if i == 0:
-            #    print(self.sess.run(self.weights[i]))
-            self.sess.run(self.weights[i].assign(weights[i]))
-            #print(self.sess.run(self.weights[i]))
+            self.sess.run(self.update_weights_op[i],feed_dict={self.update_weights[i]:np.array(weights[i])})
         return
+        
     def set_biases(self,biases):
         for i in range(0,len(biases)):
-            #if i == 0:
-            #    print(self.sess.run(self.biases[i]))
-            self.sess.run(self.biases[i].assign(biases[i]))
-            #print(self.sess.run(self.biases[i]))
+            self.sess.run(self.update_biases_op[i],feed_dict={self.update_biases[i]:np.array(biases[i])})
         return
         
 def main():

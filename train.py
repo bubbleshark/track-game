@@ -8,7 +8,7 @@ import random
 from track_game_helper import TrackGameHelper
 from player import Player
 from gene import Trainer, mate_weights, mate_biases
-#from mem_top import mem_top
+from mem_top import mem_top
 
 map_file = "data/track.png"
 car_file = "data/car_blue.png"
@@ -18,7 +18,7 @@ white_color = (255, 255, 255, 0)
 width, height = 800, 600
 fps = 30
 user_input = True
-player_num = 20
+player_num = 5
 player_info={
     "rotate_step": 3,
     "initial_x": 121,
@@ -51,7 +51,7 @@ def train():
     max_biases = None
     cou =0
     while True:
-        #print(cou,mem_top())
+        print(cou,mem_top())
         cou += 1
         for e in pygame.event.get():
                 if e.type == pygame.QUIT:
@@ -79,7 +79,7 @@ def train():
             #print(i,player.speed_x,player.speed_y,player.rotate,deg,abs(player.rotate - deg),forward)
             if player.collide == True or (forward == False and player_flag[i] == True) or (player.speed_x==0 and player.speed_y==0 and player_flag[i] == True):
                 player.reset()
-                print("stop",i)
+                #rint("stop",i)
                 trainer[i].start = False
                 player_input_list[i] = [False,False,False,False]
                 player_stop += 1
@@ -100,6 +100,7 @@ def train():
             for i in range(0,player_num):
                 sort_list.append([i,trainer[i].score])
             sort_list = sorted(sort_list,key=lambda l:l[1], reverse=True)
+            #print("score",sort_list[0][1],max_score)
             if max_score < sort_list[0][1]:
                 max_score = sort_list[0][1]
                 max_weights = trainer[sort_list[0][0]].get_weights()
@@ -110,12 +111,16 @@ def train():
             for i in range(0,player_num):
                 trainer[i].set_weights(new_weights_pool[i])
                 trainer[i].set_biases(new_biases_pool[i])
+                trainer[i].score = 0
                 trainer[i].start = True
-                print("set")
+                #print("set")
             #del new_biases_pool
             #del new_weights_pool
             player_stop = 0
             player_flag = [False for i in range(0,player_num)]
+            for i in range(0,player_num):
+                for k in range(0,4):
+                    player_input_list[i][k] = False
 
 def main():
     train()
