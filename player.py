@@ -40,6 +40,7 @@ class Player():
         self.sensor_value = [0 for i in range(0,len(self.sensor_offset))]
         self.sensor_value_prev = [0 for i in range(0,len(self.sensor_offset))]
         self.player_info = player_info
+        self.start = False
 
     def reset(self):
         self.x =self.player_info["initial_x"]
@@ -50,6 +51,35 @@ class Player():
         self.mid_y = self.y + self.height/2
         self.speed_x, self.speed_y = 0, 0
         self.collide =False
+        self.start = False
+        for i in range(0,len(self.sensor_offset)):
+            self.sensor_value_prev[i] = 0
+        self.last_collide = self.collide
+        self.width = self.normal_sprite.get_width()
+        self.height = self.normal_sprite.get_height()
+        self.mid_x = self.x + self.width/2
+        self.mid_y = self.y + self.height/2
+        self.last_mid_x = self.x + self.width/2
+        self.last_mid_y = self.y + self.height/2
+        self.rotate = self.player_info["rotate"]
+        self.boost_rotate = self.rotate
+        self.rotate_sprite(normal=True)
+        self.boost = self.player_info["boost"]
+        self.slow_down = self.player_info["slow_down"]
+        self.round_digits = 4
+        #self.offset_x = offset_x
+        #self.offset_y = offset_y
+        #self.obstacle_mask = obstacle_mask
+        self.player_mask = pygame.mask.from_surface(pygame.transform.rotate(self.normal_sprite,self.rotate))
+        self.speed_x, self.speed_y = 0, 0
+        self.speed_max = self.player_info["speed_max"]
+        self.collide = False
+        self.last_collide = self.collide
+        self.sensor_offset = self.player_info["sensor_offset"]
+        self.sensor_pos = [[] for i in range(0,len(self.sensor_offset))]
+        self.sensor_value = [0 for i in range(0,len(self.sensor_offset))]
+        self.sensor_value_prev = [0 for i in range(0,len(self.sensor_offset))]
+        #self.player_info = player_info
     
     def load_sprite(self,file_path,scale=None):
         data = pygame.image.load(file_path)
@@ -145,6 +175,10 @@ class Player():
                     if self.check_collide_map(round(x2),round(y2)):
                         collid_flag = True
                         tp_x, tp_y = x2, y2
+                if self.start == False:
+                    self.sensor_value_prev[i] = 0
+                else:
+                    self.sensor_value_prev[i] = self.sensor_value[i]
                 if collid_flag is True:
                     self.sensor_value[i] = math.sqrt(pow((tp_x-x1),2)+pow((tp_y-y1),2))
                 else:
@@ -166,7 +200,10 @@ class Player():
                     if self.check_collide_map(round(x2),round(y2)):
                         collid_flag = True
                         tp_x, tp_y = x2, y2
-                self.sensor_value_prev[i] = self.sensor_value[i]
+                if self.start == False:
+                    self.sensor_value_prev[i] = 0
+                else:
+                    self.sensor_value_prev[i] = self.sensor_value[i]
                 if collid_flag is True:
                     self.sensor_value[i] = math.sqrt(pow((tp_x-x1),2)+pow((tp_y-y1),2))
                 else:

@@ -4,6 +4,7 @@ import numpy as np
 import math
 import random
 import os
+import copy
 from mem_top import mem_top
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 '''
@@ -44,7 +45,10 @@ def mate_weights(trainer,sort_list,player_num,select_rate,max_weights):
             l.append(l2)
     '''
     for i in range(0,player_num):
-        l = max_weights.copy()
+        l = copy.deepcopy(max_weights)
+        if i == 0:
+            new_pool.append(l)
+            continue
         for i2 in range(0,math.ceil(node_count*0.01)):
             i3 = random.randint(0,len(l)-1) # select layer
             i4 = random.randint(0,len(l[i3])-1)
@@ -69,7 +73,10 @@ def mate_biases(trainer,sort_list,player_num,select_rate,max_biases):
             node_count += 1
     
     for i in range(0,player_num):
-        l= max_biases.copy()
+        l= copy.deepcopy(max_biases)
+        if i == 0:
+            new_pool.append(l)
+            continue
         for i2 in range(0,math.ceil(node_count*0.01)):
             i3 = random.randint(0,len(l)-1) # select layer
             i4 = random.randint(0,len(l[i3])-1)
