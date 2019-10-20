@@ -20,7 +20,7 @@ white_color = (255, 255, 255, 0)
 width, height = 800, 600
 fps = 30
 user_input = True
-player_num = 20
+player_num = 50
 player_info={
     "rotate_step": 3,
     "initial_x": 121,
@@ -29,7 +29,8 @@ player_info={
     "boost": 0.4,
     "slow_down": 0.1,
     "speed_max": 5,
-    "sensor_offset": [[10,0,80,0],[12,340,60,45],[12,20,60,315],[9,316,40,90],[9,44,40,270]] # r,degree,r,degree
+    "sensor_offset": [[10,0,80,0],[12,340,80,45],[12,20,80,315],[9,316,80,90],[9,44,80,270]] # r,degree,r,degree
+    #"sensor_offset": [[10,0,80,0],[12,340,60,45],[12,20,60,315],[9,316,40,90],[9,44,40,270]] # r,degree,r,degree
 }
 train_info={
     "n_layer_num": 2,
@@ -82,17 +83,21 @@ def train():
             #print(player.rotate,deg)
             
             forward = False
-            if min(abs(abs(player.rotate - deg)),abs(player.rotate - deg+360)) < 180:
+            if min(abs(abs(player.rotate - deg)),abs(player.rotate - deg+360)) < 120:
                 forward = True
             #forward = True
             #if abs(player.rotate - deg) > 270 and  pow(player.speed_x,2)+pow(player.speed_y,2) > 0:
             #    forward = False
             trainer[i].score += pow(player.speed_x,2)+pow(player.speed_y,2)
+            trainer[i].score -= 0.1
+            #print(trainer[i].score)
             #print(i,player.speed_x,player.speed_y,player.rotate,deg,abs(player.rotate - deg),forward)
             
             if player.collide == True or (forward == False and player_flag[i] == True) or (player.speed_x==0 and player.speed_y==0 and player_flag[i] == True):
                 player.reset()
                 #rint("stop",i)
+                if trainer[i].score <= 0.0:
+                    trainer[i].score=0
                 trainer[i].start = False
                 player_input_list[i] = [False,False,False,False]
                 player_stop += 1
@@ -134,8 +139,8 @@ def train():
             if max_score < sort_list[0][1]:
                 print("max",max_score,sort_list[0][1],sort_list[0][0],max_score_idx)
                 max_score = sort_list[0][1]
-                max_weights = copy.deepcopy(trainer[sort_list[0][0]].get_weights())
-                max_biases = copy.deepcopy(trainer[sort_list[0][0]].get_biases())
+                #max_weights = copy.deepcopy(trainer[sort_list[0][0]].get_weights())
+                #max_biases = copy.deepcopy(trainer[sort_list[0][0]].get_biases())
             '''
             print("start")
             for k in range(0,player_num):
@@ -152,8 +157,8 @@ def train():
                 print(tp_w.hexdigest(),tp_b.hexdigest())
             '''
             #print(max_weights)
-            new_weights_pool = mate_weights(trainer,sort_list,player_num,select_rate,max_weights)
-            new_biases_pool = mate_biases(trainer,sort_list,player_num,select_rate,max_biases)
+            new_weights_pool = mate_weights(trainer,sort_list,player_num,select_rate)
+            new_biases_pool = mate_biases(trainer,sort_list,player_num,select_rate)
             for i in range(0,player_num):
                 #if i == max_score_idx:
                 #trainer[i].score = 0
