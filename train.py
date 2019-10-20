@@ -79,9 +79,14 @@ def train():
             player.start = True
             #print(i)
             deg = (-1*(math.atan2(player.speed_y, player.speed_x) * (180 / math.pi)) + 360 ) %360
+            #print(player.rotate,deg)
+            
             forward = False
-            if abs(player.rotate - deg) < 150:
+            if min(abs(abs(player.rotate - deg)),abs(player.rotate - deg+360)) < 180:
                 forward = True
+            #forward = True
+            #if abs(player.rotate - deg) > 270 and  pow(player.speed_x,2)+pow(player.speed_y,2) > 0:
+            #    forward = False
             trainer[i].score += pow(player.speed_x,2)+pow(player.speed_y,2)
             #print(i,player.speed_x,player.speed_y,player.rotate,deg,abs(player.rotate - deg),forward)
             

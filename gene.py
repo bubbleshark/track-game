@@ -49,7 +49,7 @@ def mate_weights(trainer,sort_list,player_num,select_rate,max_weights):
         if i == 0:
             new_pool.append(l)
             continue
-        for i2 in range(0,math.ceil(node_count*0.01)):
+        for i2 in range(0,math.ceil(node_count*0.1)):
             i3 = random.randint(0,len(l)-1) # select layer
             i4 = random.randint(0,len(l[i3])-1)
             i5 = random.randint(0,len(l[i3][i4])-1)
@@ -77,7 +77,7 @@ def mate_biases(trainer,sort_list,player_num,select_rate,max_biases):
         if i == 0:
             new_pool.append(l)
             continue
-        for i2 in range(0,math.ceil(node_count*0.01)):
+        for i2 in range(0,math.ceil(node_count*0.1)):
             i3 = random.randint(0,len(l)-1) # select layer
             i4 = random.randint(0,len(l[i3])-1)
             l[i3][i4] = random.uniform(-2, 2)
