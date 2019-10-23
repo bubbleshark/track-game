@@ -29,7 +29,7 @@ player_info={
     "boost": 0.4,
     "slow_down": 0.1,
     "speed_max": 5,
-    "sensor_offset": [[10,0,80,0],[12,340,80,45],[12,20,80,315],[9,316,80,90],[9,44,80,270]] # r,degree,r,degree
+    "sensor_offset": [[10,0,100,0],[12,340,100,45],[12,20,100,315],[9,316,100,90],[9,44,100,270]] # r,degree,r,degree
     #"sensor_offset": [[10,0,80,0],[12,340,60,45],[12,20,60,315],[9,316,40,90],[9,44,40,270]] # r,degree,r,degree
 }
 train_info={
@@ -39,6 +39,7 @@ train_info={
     "num_output": 4
 }
 select_rate = 0.2
+stop_thres = 3
         
 def train():
     game = TrackGameHelper(map_file,obstacle_color,white_color,width,height,fps)
@@ -79,38 +80,65 @@ def train():
                 continue
             player.start = True
             #print(i)
-            deg = (-1*(math.atan2(player.speed_y, player.speed_x) * (180 / math.pi)) + 360 ) %360
+            #deg = (-1*(math.atan2(player.speed_y, player.speed_x) * (180 / math.pi)) + 360 ) %360
             #print(player.rotate,deg)
             
             forward = False
-            if min(abs(abs(player.rotate - deg)),abs(player.rotate - deg+360)) < 120:
-                forward = True
-            #forward = True
+            #if min(abs(abs(player.rotate - deg)),abs(player.rotate - deg+360)) < 180:
+            #    forward = True
+            forward = True
             #if abs(player.rotate - deg) > 270 and  pow(player.speed_x,2)+pow(player.speed_y,2) > 0:
             #    forward = False
-            trainer[i].score += pow(player.speed_x,2)+pow(player.speed_y,2)
-            trainer[i].score -= 0.1
+            
+            #for k,e in enumerate(player.sensor_value):
+            #    if k == 0:
+            #        trainer[i].score += e*4
+            #        continue
+            #    trainer[i].score += e
+            #trainer[i].score += trainer[i].score*math.sqrt(pow(player.speed_x,2)+pow(player.speed_y,2))
+            #trainer[i].score += player.sensor_value[0]+(player.sensor_value[-2]+player.sensor_value[-1])/(abs(player.sensor_value[-2]-player.sensor_value[-1])+1)
+            #for k in player.sensor_value:
+            #    if k <10:
+            #        trainer[i].score -= 200
+            #trainer[i].score += (pow(player.speed_x,2)+pow(player.speed_y,2)) /(abs(player.sensor_value[-2]-player.sensor_value[-1])+1)
+            #if trainer[i].high_score < trainer[i].score:
+            #    trainer[i].high_score = trainer[i].score
+            trainer[i].score += 1
             #print(trainer[i].score)
             #print(i,player.speed_x,player.speed_y,player.rotate,deg,abs(player.rotate - deg),forward)
             
-            if player.collide == True or (forward == False and player_flag[i] == True) or (player.speed_x==0 and player.speed_y==0 and player_flag[i] == True):
+            #if player.collide == True or (forward == False and player_flag[i] == True) or (player.speed_x==0 and player.speed_y==0 and player_flag[i] == True):
+            if player.speed_x==0 and player.speed_y==0:
+                trainer[i].stop_cou += 1
+            else:
+                trainer[i].stop_cou = 0
+            if player.collide == True or (forward == False and player_flag[i] == True) or (trainer[i].stop_cou >= stop_thres and player_flag[i] == True):
                 player.reset()
                 #rint("stop",i)
                 if trainer[i].score <= 0.0:
-                    trainer[i].score=0
+                    trainer[i].score = 0
+                    trainer[i].stop_cou = 0
+                    trainer[i].high_score=0
                 trainer[i].start = False
                 player_input_list[i] = [False,False,False,False]
                 player_stop += 1
                 continue
-            input = [player.sensor_value_prev+player.sensor_value]
+            #input = [player.sensor_value_prev+player.sensor_value]
+            input = [[0,0,0,0,0]+player.sensor_value]
             
             #exit()
             #input_tp[i].append(input)
             sensor_num = len(player_info["sensor_offset"])
             #print(player.speed_x,player.speed_y)
             trainer[i].run(input)
+            all_stop = 0
             for k in range(0,4):
                 player_input_list[i][k] = trainer[i].output[k]
+                if trainer[i].output[k] == False:
+                    all_stop += 1
+            if all_stop == 4:
+                trainer[i].stop_cou = stop_thres
+            print(trainer[i].output)
             player_flag[i] = True
             #for k,e in enumerate(player_info["sensor_offset"]):
             #    input[0][k] = input[0][k]/e[2]
@@ -158,15 +186,17 @@ def train():
             '''
             #print(max_weights)
             new_weights_pool = mate_weights(trainer,sort_list,player_num,select_rate)
-            new_biases_pool = mate_biases(trainer,sort_list,player_num,select_rate)
+            #new_biases_pool = mate_biases(trainer,sort_list,player_num,select_rate)
             for i in range(0,player_num):
                 #if i == max_score_idx:
                 #trainer[i].score = 0
                 #trainer[i].start = True
                 #continue
                 trainer[i].set_weights(new_weights_pool[i])
-                trainer[i].set_biases(new_biases_pool[i])
+                #trainer[i].set_biases(new_biases_pool[i])
                 trainer[i].score = 0
+                trainer[i].stop_cou = 0
+                trainer[i].high_score = 0
                 trainer[i].start = True
                 #print("set")
             '''    

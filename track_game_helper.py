@@ -92,9 +92,12 @@ class TrackGameHelper():
                 self.screen.blit(player.current_sprite, player.current_sprite_rect)
                 for i in player.sensor_pos:
                     pygame.draw.line(self.screen,(128,128,128,0),(i[0],i[1]),(i[2],i[3]))
+            #deg = (-1*(math.atan2(player.speed_y, player.speed_x) * (180 / math.pi)) + 360 ) %360
+            #print(min(abs(abs(player.rotate - deg)),abs(player.rotate - deg+360)))
             pygame.display.update()
             self.game_clock.tick(self.fps)
             self.screen.fill(self.background_color)
+            
     
     def run_step(self,player_input_list):
         for i,player in enumerate(self.player):
