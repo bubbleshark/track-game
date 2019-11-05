@@ -45,19 +45,23 @@ def mate_weights(trainer,sort_list,player_num,select_rate):
         select2 = np.random.choice(idx,1,p=idx_prob)[0]#(select + random.randint(1,player_num-1))%player_num
         l= copy.deepcopy(trainer[select].get_weights())
         tp_l = trainer[select2].get_weights()
+        if i == 0:
+            new_pool.append(l)
+            continue
         #l= copy.deepcopy(trainer[sort_list[0][0]].get_weights())
         #tp_l = trainer[sort_list[1][0]].get_weights()
-        for i2 in range(0,1):#,math.ceil(node_count*0.01)):
+        for i2 in range(0,20):#,math.ceil(node_count*0.01)):
             i3 = random.randint(0,len(l)-1) # select layer
             i4 = random.randint(0,len(l[i3])-1)
             i5 = random.randint(0,len(l[i3][i4])-1)
             l[i3][i4][i5] = tp_l[i3][i4][i5]
-        if random.randint(0,1) == 1:
-            for i2 in range(0,20):#,math.ceil(node_count*0.01)):
-                i3 = random.randint(0,len(l)-1) # select layer
-                i4 = random.randint(0,len(l[i3])-1)
-                i5 = random.randint(0,len(l[i3][i4])-1)
-                l[i3][i4][i5] = np.float32(np.random.normal(0, 1, 1)[0])
+        #if random.randint(0,1) == 1:
+        
+        for i2 in range(0,3):#,math.ceil(node_count*0.01)):
+            i3 = random.randint(0,len(l)-1) # select layer
+            i4 = random.randint(0,len(l[i3])-1)
+            i5 = random.randint(0,len(l[i3][i4])-1)
+            l[i3][i4][i5] = np.float32(np.random.normal(0, 1, 1)[0])
         #print(l[i3][i4][i5],type(l[i3][i4][i5]))
         #exit()
         new_pool.append(l)

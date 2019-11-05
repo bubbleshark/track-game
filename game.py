@@ -7,7 +7,7 @@ import numpy as np
 from track_game_helper import TrackGameHelper
 from player import Player
 
-map_file = "data/track.png"
+map_file = "data/track2.png"
 car_file = "data/car_blue.png"
 car_file2 = "data/car_red.png"
 obstacle_color = (128,128,128)
@@ -18,7 +18,7 @@ user_input = True
 player_num = 1
 player_info={
     "rotate_step": 3,
-    "initial_x": 121,
+    "initial_x": 100,
     "initial_y": 248,
     "rotate": 270,
     "boost": 0.4,

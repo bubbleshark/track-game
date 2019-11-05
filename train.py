@@ -12,7 +12,7 @@ from gene import Trainer, mate_weights, mate_biases
 import hashlib
 #from mem_top import mem_top
 
-map_file = "data/track.png"
+map_file = "data/track4.png"
 car_file = "data/car_blue.png"
 car_file2 = "data/car_red.png"
 obstacle_color = (128,128,128)
@@ -23,13 +23,13 @@ user_input = True
 player_num = 50
 player_info={
     "rotate_step": 3,
-    "initial_x": 121,
+    "initial_x": 120,
     "initial_y": 248,
     "rotate": 270,
     "boost": 0.4,
     "slow_down": 0.1,
     "speed_max": 5,
-    "sensor_offset": [[10,0,100,0],[12,340,100,45],[12,20,100,315],[9,316,100,90],[9,44,100,270]] # r,degree,r,degree
+    "sensor_offset": [[10,0,80,0],[12,340,80,45],[12,20,80,315],[9,316,80,90],[9,44,80,270]] # r,degree,r,degree
     #"sensor_offset": [[10,0,80,0],[12,340,60,45],[12,20,60,315],[9,316,40,90],[9,44,40,270]] # r,degree,r,degree
 }
 train_info={
@@ -40,7 +40,26 @@ train_info={
 }
 select_rate = 0.2
 stop_thres = 3
-        
+
+def print_hash(trainer,player_num):
+    score = 0.0
+    for k in range(0,player_num):
+        tp_w=""
+        tp_b=""
+        tp_weights = trainer[k].get_weights()
+        tp_biases = trainer[k].get_biases()
+        _ = [i3 for i in tp_weights for i2 in i for i3 in i2]
+        __ = [i2 for i in tp_biases for i2 in i]
+        for i in _:
+            tp_w = tp_w + str(i)
+        for i in __:
+            tp_b = tp_b + str(i)
+        tp_w = hashlib.md5(tp_w.encode())
+        #tp_b = hashlib.md5(tp_b.encode())
+        print("trainer "+str(k)+": "+tp_w.hexdigest()+" score: "+str(trainer[k].score))
+        score += trainer[k].score
+    print("average score:",float(score)/player_num)
+
 def train():
     game = TrackGameHelper(map_file,obstacle_color,white_color,width,height,fps)
     game.set_player(car_file,car_file2,player_info,player_num)
@@ -103,7 +122,8 @@ def train():
             #trainer[i].score += (pow(player.speed_x,2)+pow(player.speed_y,2)) /(abs(player.sensor_value[-2]-player.sensor_value[-1])+1)
             #if trainer[i].high_score < trainer[i].score:
             #    trainer[i].high_score = trainer[i].score
-            trainer[i].score += 1
+            #print(player.prev_rotate,player.rotate)
+            trainer[i].score += 1 #/(abs(player.prev_rotate-player.rotate)+1)
             #print(trainer[i].score)
             #print(i,player.speed_x,player.speed_y,player.rotate,deg,abs(player.rotate - deg),forward)
             
@@ -125,6 +145,7 @@ def train():
                 continue
             #input = [player.sensor_value_prev+player.sensor_value]
             input = [[0,0,0,0,0]+player.sensor_value]
+            #input = [[0,0,player.speed_x,player.speed_y,player.rotate]+player.sensor_value]
             
             #exit()
             #input_tp[i].append(input)
@@ -138,37 +159,35 @@ def train():
                     all_stop += 1
             if all_stop == 4:
                 trainer[i].stop_cou = stop_thres
-            print(trainer[i].output)
+            #print(trainer[i].output)
             player_flag[i] = True
             #for k,e in enumerate(player_info["sensor_offset"]):
             #    input[0][k] = input[0][k]/e[2]
             #    input[0][k+sensor_num] = input[0][k]/e[2]
             #print(trainer,i,input)
         if player_stop == player_num:
-            print(iter)
             iter += 1
             sort_list = []
-            score_list = []
-            max_score_idx = -1
-            max_score_tp = -1.0
+            #score_list = []
+            #max_score_idx = -1
+            #max_score_tp = -1.0
             for i in range(0,player_num):
                 sort_list.append([i,trainer[i].score])
-                score_list.append(trainer[i].score)
+                #score_list.append(trainer[i].score)
             sort_list = sorted(sort_list,key=lambda l:l[1], reverse=True)
-            for i,e in enumerate(score_list):
-                if max_score_tp < e:
-                    max_score_tp = e
-                    max_score_idx = i
-            score_list = sorted(score_list,key=lambda l:l, reverse=True)
+            #for i,e in enumerate(score_list):
+            #    if max_score_tp < e:
+            #        max_score_tp = e
+            #        max_score_idx = i
+            #score_list = sorted(score_list,key=lambda l:l, reverse=True)
             
-            print("score",sort_list[0][1],max_score)
-            print(score_list[0])
-            #print(sort_list)
+            print("iter:",iter,"current score",sort_list[0][1],"max score:",max_score)
             if max_score < sort_list[0][1]:
-                print("max",max_score,sort_list[0][1],sort_list[0][0],max_score_idx)
                 max_score = sort_list[0][1]
+                print("update max score:",max_score)
                 #max_weights = copy.deepcopy(trainer[sort_list[0][0]].get_weights())
                 #max_biases = copy.deepcopy(trainer[sort_list[0][0]].get_biases())
+            print_hash(trainer,player_num)
             '''
             print("start")
             for k in range(0,player_num):
@@ -188,10 +207,14 @@ def train():
             new_weights_pool = mate_weights(trainer,sort_list,player_num,select_rate)
             #new_biases_pool = mate_biases(trainer,sort_list,player_num,select_rate)
             for i in range(0,player_num):
-                #if i == max_score_idx:
-                #trainer[i].score = 0
-                #trainer[i].start = True
-                #continue
+                
+                if i == sort_list[0][0] or i == sort_list[1][0]:
+                    trainer[i].score = 0
+                    trainer[i].stop_cou = 0
+                    trainer[i].high_score = 0
+                    trainer[i].start = True
+                    continue
+                
                 trainer[i].set_weights(new_weights_pool[i])
                 #trainer[i].set_biases(new_biases_pool[i])
                 trainer[i].score = 0
@@ -199,21 +222,9 @@ def train():
                 trainer[i].high_score = 0
                 trainer[i].start = True
                 #print("set")
-            '''    
-            tp_w=""
-            tp_b=""
-            tp_weights = trainer[0].get_weights()
-            tp_biases = trainer[0].get_biases()
-            _ = [i3 for i in tp_weights for i2 in i for i3 in i2]
-            __ = [i2 for i in tp_biases for i2 in i]
-            for i in _:
-                tp_w = tp_w + str(i)
-            for i in __:
-                tp_b = tp_b + str(i)
-            tp_w = hashlib.md5(tp_w.encode())
-            tp_b = hashlib.md5(tp_b.encode())
-            print("2",tp_w.hexdigest(),tp_b.hexdigest())
-            '''
+                
+
+            
             #del new_biases_pool
             #del new_weights_pool
             player_stop = 0

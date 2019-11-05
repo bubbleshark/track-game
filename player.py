@@ -41,6 +41,7 @@ class Player():
         self.sensor_value_prev = [0 for i in range(0,len(self.sensor_offset))]
         self.player_info = player_info
         self.start = False
+        self.prev_rotate = self.rotate
 
     def reset(self):
         self.x =self.player_info["initial_x"]
@@ -79,6 +80,7 @@ class Player():
         self.sensor_pos = [[] for i in range(0,len(self.sensor_offset))]
         self.sensor_value = [0 for i in range(0,len(self.sensor_offset))]
         self.sensor_value_prev = [0 for i in range(0,len(self.sensor_offset))]
+        self.prev_rotate = self.rotate
         #self.player_info = player_info
     
     def load_sprite(self,file_path,scale=None):
@@ -224,6 +226,7 @@ class Player():
         
     def check_input(self,input_list=None):
         boost_flag =False
+        self.prev_rotate = self.rotate
         if input_list is None:
             input_list = self.check_user_input()
         if input_list[0] is True:
