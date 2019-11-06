@@ -12,7 +12,7 @@ from gene import Trainer, mate_weights, mate_biases
 import hashlib
 #from mem_top import mem_top
 
-map_file = "data/track4.png"
+map_file = "data/track.png"
 car_file = "data/car_blue.png"
 car_file2 = "data/car_red.png"
 obstacle_color = (128,128,128)
@@ -20,7 +20,7 @@ white_color = (255, 255, 255, 0)
 width, height = 800, 600
 fps = 30
 user_input = True
-player_num = 50
+player_num = 5
 player_info={
     "rotate_step": 3,
     "initial_x": 120,
@@ -204,17 +204,18 @@ def train():
                 print(tp_w.hexdigest(),tp_b.hexdigest())
             '''
             #print(max_weights)
+            print("mate select:",sort_list[0][0],sort_list[0][1])
+            print("mate select:",sort_list[1][0],sort_list[1][1])
             new_weights_pool = mate_weights(trainer,sort_list,player_num,select_rate)
             #new_biases_pool = mate_biases(trainer,sort_list,player_num,select_rate)
             for i in range(0,player_num):
                 
-                if i == sort_list[0][0] or i == sort_list[1][0]:
-                    trainer[i].score = 0
-                    trainer[i].stop_cou = 0
-                    trainer[i].high_score = 0
-                    trainer[i].start = True
-                    continue
-                
+                #if i == sort_list[0][0] or i == sort_list[1][0]:
+                #    trainer[i].score = 0
+                #    trainer[i].stop_cou = 0
+                #    trainer[i].high_score = 0
+                #    trainer[i].start = True
+                #    continue
                 trainer[i].set_weights(new_weights_pool[i])
                 #trainer[i].set_biases(new_biases_pool[i])
                 trainer[i].score = 0

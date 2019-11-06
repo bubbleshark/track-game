@@ -41,15 +41,21 @@ def mate_weights(trainer,sort_list,player_num,select_rate):
         #if i == sort_list[0][0]:
         #    new_pool.append(trainer[i].get_weights())
         #    continue
-        select = np.random.choice(idx,1,p=idx_prob)[0]
-        select2 = np.random.choice(idx,1,p=idx_prob)[0]#(select + random.randint(1,player_num-1))%player_num
-        l= copy.deepcopy(trainer[select].get_weights())
-        tp_l = trainer[select2].get_weights()
-        if i == 0:
+        #select = np.random.choice(idx,1,p=idx_prob)[0]
+        #select2 = np.random.choice(idx,1,p=idx_prob)[0]#(select + random.randint(1,player_num-1))%player_num
+        #l= copy.deepcopy(trainer[select].get_weights())
+        #tp_l = trainer[select2].get_weights()
+        #if i == 0:
+        #    new_pool.append(l)
+        #    continue
+        l= copy.deepcopy(trainer[sort_list[0][0]].get_weights())
+        tp_l = trainer[sort_list[1][0]].get_weights()
+        if i == sort_list[0][0]:
             new_pool.append(l)
             continue
-        #l= copy.deepcopy(trainer[sort_list[0][0]].get_weights())
-        #tp_l = trainer[sort_list[1][0]].get_weights()
+        if i == sort_list[1][0]:
+            new_pool.append(copy.deepcopy(tp_l))
+            continue
         for i2 in range(0,20):#,math.ceil(node_count*0.01)):
             i3 = random.randint(0,len(l)-1) # select layer
             i4 = random.randint(0,len(l[i3])-1)
@@ -57,7 +63,7 @@ def mate_weights(trainer,sort_list,player_num,select_rate):
             l[i3][i4][i5] = tp_l[i3][i4][i5]
         #if random.randint(0,1) == 1:
         
-        for i2 in range(0,3):#,math.ceil(node_count*0.01)):
+        for i2 in range(0,1):#,math.ceil(node_count*0.01)):
             i3 = random.randint(0,len(l)-1) # select layer
             i4 = random.randint(0,len(l[i3])-1)
             i5 = random.randint(0,len(l[i3][i4])-1)
@@ -70,11 +76,19 @@ def mate_weights(trainer,sort_list,player_num,select_rate):
 def mate_biases(trainer,sort_list,player_num,select_rate):
     new_pool = []
     node_count = 0
+    idx = []
+    idx_prob = []
     p = trainer[0].get_biases()
     for i in range(0,len(p)):
         for i2 in range(0,len(p[i])):
             node_count += 1
-    
+    for i,e in enumerate(sort_list):
+        idx.append(sort_list[i][0])
+        idx_prob.append(sort_list[i][1]+1)
+        total_score += sort_list[i][1]+1
+    for i in range(0,len(idx_prob)):
+        idx_prob[i] = idx_prob[i]/float(total_score)
+        
     for i in range(0,player_num):
         #if i == sort_list[0][0]:
         #    new_pool.append(trainer[i].get_biases())
